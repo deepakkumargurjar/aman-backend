@@ -3,6 +3,7 @@
     import cors from "cors"
     import dotenv from "dotenv"
     import contactRoutes from "./routes/contactRoutes.js"
+    const path = require("path");
 
     dotenv.config()
 
@@ -13,10 +14,17 @@
 
     app.use("/api", contactRoutes)
     app.use("/uploads", express.static("uploads"))
+    app.use(express.static(path.join(__dirname, 'public')));
+
+    app.get('*name', (req, res) => {
+      res.sendFile(path.join(__dirname, '../public/index.html'));
+    });
 
 
-    mongoose
-    .connect(process.env.MONGO_URI)
+
+
+
+    mongoose.connect(process.env.MONGO_URI)
     .then(() => console.log("MongoDB Connected"))
     .catch((err) => console.log(err))
 

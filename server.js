@@ -1,33 +1,44 @@
-    import express from "express"
-    import mongoose from "mongoose"
-    import cors from "cors"
-    import dotenv from "dotenv"
-    import contactRoutes from "./routes/contactRoutes.js"
-    const path = require("path");
+import express from "express"
+import mongoose from "mongoose"
+import cors from "cors"
+import dotenv from "dotenv"
+import path from "path"
+import { fileURLToPath } from "url"
+import contactRoutes from "./routes/contactRoutes.js"
 
-    dotenv.config()
+dotenv.config()
 
-    const app = express()
+const app = express()
 
-    app.use(cors())
-    app.use(express.json())
+// 🔹 Fix __dirname for ES modules
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
-    app.use("/api", contactRoutes)
-    app.use("/uploads", express.static("uploads"))
-    app.use(express.static(path.join(__dirname, 'public')));
+// middlewares
+app.use(cors())
+app.use(express.json())
+app.use(express.urlencoded({ extended: true }))
 
-    app.get('*name', (req, res) => {
-      res.sendFile(path.join(__dirname, '../public/index.html'));
-    });
+// routes
+app.use("/api", contactRoutes)
 
+// static folders
+app.use("/uploads", express.static(path.join(__dirname, "uploads")))
+app.use(express.static(path.join(__dirname, "public")))
 
+// frontend fallback (for SPA)
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"))
+})
 
+// mongo connection
+mongoose
+  .connect(process.env.MONGO_URI)
+  .then(() => console.log("MongoDB Connected"))
+  .catch((err) => console.error("MongoDB Error:", err))
 
+const PORT = process.env.PORT || 5000
 
-    mongoose.connect(process.env.MONGO_URI)
-    .then(() => console.log("MongoDB Connected"))
-    .catch((err) => console.log(err))
-
-    app.listen(process.env.PORT, () => {
-    console.log(`Server running on port ${process.env.PORT}`)
-    })
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`)
+})
